@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { Shield, Waves } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 type TabId = "overview" | "cctv" | "risk" | "rescue";
 type RiskLevel = "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
@@ -247,6 +248,7 @@ export default function Home() {
   const [selectedIncidentId, setSelectedIncidentId] = useState("AU-023");
   const [routeVisible, setRouteVisible] = useState(true);
   const [lastUpdated, setLastUpdated] = useState("");
+  const [openSelect, setOpenSelect] = useState<string | null>(null);
 
   useEffect(() => {
     const update = () =>
@@ -312,51 +314,47 @@ export default function Home() {
 
   return (
     <main className="app-shell">
+      <nav className="floating-menu" aria-label="K.A.F.A. modules">
+        <div className="menu-brand">
+          <span className="menu-logo" aria-hidden="true">
+            <Shield size={18} strokeWidth={2.5} />
+            <Waves size={16} strokeWidth={2.5} />
+          </span>
+          <span>K.A.F.A.</span>
+          <small>Aceh Utara Command</small>
+        </div>
+        <div className="menu-tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={activeTab === tab.id ? "active" : ""}
+              onClick={() => setActiveTab(tab.id)}
+              type="button"
+            >
+              <span>{tab.stage}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
       <section className="topbar" aria-label="Global controls">
         <div className="brand-block">
-          <div className="brand-mark">K</div>
+          <div className="brand-mark" aria-hidden="true">
+            <Shield size={25} strokeWidth={2.4} />
+            <Waves size={18} strokeWidth={2.7} />
+          </div>
           <div>
             <p className="eyebrow">Korea-ASEAN Flood Assistance System</p>
             <h1>K.A.F.A.</h1>
           </div>
         </div>
         <div className="geo-controls">
-          <label>
-            Country
-            <select value="Indonesia" aria-label="Country">
-              <option>Indonesia</option>
-            </select>
-          </label>
-          <label>
-            Province
-            <select value="Aceh" aria-label="Province">
-              <option>Aceh</option>
-            </select>
-          </label>
-          <label>
-            Area
-            <select value={area} onChange={(event) => setArea(event.target.value)} aria-label="Operational area">
-              {areas.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </label>
+          <CustomSelect id="country" label="Country" value="Indonesia" options={["Indonesia"]} onChange={() => {}} openSelect={openSelect} setOpenSelect={setOpenSelect} />
+          <CustomSelect id="province" label="Province" value="Aceh" options={["Aceh"]} onChange={() => {}} openSelect={openSelect} setOpenSelect={setOpenSelect} />
+          <CustomSelect id="area" label="Area" value={area} options={areas} onChange={setArea} openSelect={openSelect} setOpenSelect={setOpenSelect} />
         </div>
       </section>
-
-      <nav className="tabs" aria-label="K.A.F.A. modules">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={activeTab === tab.id ? "active" : ""}
-            onClick={() => setActiveTab(tab.id)}
-            type="button"
-          >
-            <span>{tab.stage}</span>
-            {tab.label}
-          </button>
-        ))}
-      </nav>
 
       <section className="context-strip">
         <strong>Prototype - simulated data for demonstration purposes.</strong>
@@ -671,8 +669,13 @@ function RiskTab({
           <PanelTitle title="AI Explainability" meta="Primary drivers" />
           <p className="plain-text">{selectedZone.drivers}</p>
           <div className="influence-list">
-            {["River Level - Very High", "Rainfall - High", "Flow Speed - Moderate", "Local Terrain - Moderate"].map((item) => (
-              <span key={item}>{item}</span>
+            {[
+              { label: "River Level - Very High", level: "very-high" },
+              { label: "Rainfall - High", level: "high" },
+              { label: "Flow Speed - Moderate", level: "moderate" },
+              { label: "Local Terrain - Moderate", level: "moderate" },
+            ].map((item) => (
+              <span key={item.label} className={`influence-${item.level}`}>{item.label}</span>
             ))}
           </div>
 
@@ -959,6 +962,86 @@ function Info({ label, value }: { label: string; value: string }) {
     <div className="info-item">
       <span>{label}</span>
       <strong>{value}</strong>
+    </div>
+  );
+}
+
+function CustomSelect({
+  id,
+  label,
+  value,
+  options,
+  onChange,
+  openSelect,
+  setOpenSelect,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+  openSelect: string | null;
+  setOpenSelect: (id: string | null) => void;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const open = openSelect === id;
+  const selectId = `select-${label.toLowerCase().replace(/\s+/g, "-")}`;
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpenSelect(null);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpenSelect(null);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, setOpenSelect]);
+
+  return (
+    <div className="custom-select" ref={rootRef}>
+      <span id={`${selectId}-label`}>{label}</span>
+      <button
+        type="button"
+        className="custom-select-trigger"
+        aria-labelledby={`${selectId}-label`}
+        aria-expanded={open}
+        onClick={() => setOpenSelect(open ? null : id)}
+      >
+        <span>{value}</span>
+        <span aria-hidden="true">⌄</span>
+      </button>
+      {open && (
+        <div className="custom-select-menu" role="listbox" aria-labelledby={`${selectId}-label`}>
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="option"
+              aria-selected={option === value}
+              className={option === value ? "selected" : ""}
+              onClick={() => {
+                onChange(option);
+                setOpenSelect(null);
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
