@@ -221,7 +221,7 @@ const events = [
 const sources: { label: string; value: string; percent: number; status: SourceStatus }[] = [
   { label: "CCTV", value: "14 / 15", percent: 93, status: "Online" },
   { label: "Water Sensors", value: "12 / 12", percent: 100, status: "Online" },
-  { label: "Rainfall Stations", value: "6 / 8", percent: 75, status: "Partial" },
+  { label: "Weather Stations", value: "6 / 8", percent: 75, status: "Partial" },
   { label: "River Flow Gauges", value: "5 / 5", percent: 100, status: "Online" },
 ];
 
@@ -238,6 +238,13 @@ function riskClass(value: number) {
 
 function statusClass(status: string) {
   return status.toLowerCase().replace(/\s+/g, "-");
+}
+
+function getWaterScene(level: number) {
+  if (level >= 2.8) return "critical";
+  if (level >= 2.2) return "high";
+  if (level >= 1.4) return "moderate";
+  return "low";
 }
 
 export default function Home() {
@@ -350,8 +357,7 @@ export default function Home() {
           </div>
         </div>
         <div className="geo-controls">
-          <CustomSelect id="country" label="Country" value="Indonesia" options={["Indonesia"]} onChange={() => {}} openSelect={openSelect} setOpenSelect={setOpenSelect} />
-          <CustomSelect id="province" label="Province" value="Aceh" options={["Aceh"]} onChange={() => {}} openSelect={openSelect} setOpenSelect={setOpenSelect} />
+          <CustomSelect id="province" label="Province/City" value="Aceh" options={["Aceh"]} onChange={() => {}} openSelect={openSelect} setOpenSelect={setOpenSelect} />
           <CustomSelect id="area" label="Area" value={area} options={areas} onChange={setArea} openSelect={openSelect} setOpenSelect={setOpenSelect} />
         </div>
       </section>
@@ -441,48 +447,6 @@ function OverviewTab({
 
       <div className="overview-grid">
         <div className="panel stack-panel">
-          <PanelTitle title="Flood Risk List" meta="AI-generated simulated risk" />
-          <div className="compact-table">
-            {zones.slice(0, 4).map((zone) => (
-              <button
-                key={zone.id}
-                className={`table-row ${selectedZone.id === zone.id ? "selected" : ""}`}
-                onClick={() => selectZone(zone.id)}
-                type="button"
-              >
-                <span>Zone {zone.id}</span>
-                <strong>{zone.name}</strong>
-                <span className={`risk-badge ${riskClass(zone.risk)}`}>{zone.risk}% {getRiskLevel(zone.risk)}</span>
-              </button>
-            ))}
-          </div>
-          <button className="primary-action" onClick={() => setActiveTab("risk")} type="button">
-            View Flood Risk
-          </button>
-
-          <PanelTitle title="River Level List" meta="IoT sensor measurement" />
-          <div className="river-list">
-            {sensors.map((sensor) => (
-              <button
-                key={sensor.id}
-                className={`sensor-row ${selectedSensor.id === sensor.id ? "selected" : ""}`}
-                onClick={() => {
-                  const zone = zones.find((item) => item.sensorId === sensor.id);
-                  if (zone) selectZone(zone.id);
-                }}
-                type="button"
-              >
-                <span>{sensor.id}</span>
-                <strong>{sensor.place}</strong>
-                <b>{sensor.level.toFixed(1)} m</b>
-                <em>{sensor.change}</em>
-                <small>{sensor.risk}</small>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="panel stack-panel">
           <PanelTitle title="Recent Events" meta="Aceh Utara operational timeline" />
           <div className="event-list">
             {events.map(([time, title, detail]) => (
@@ -505,6 +469,50 @@ function OverviewTab({
                 <div className="meter"><i style={{ width: `${source.percent}%` }} /></div>
                 <small className={`status-dot ${statusClass(source.status)}`}>{source.percent}% {source.status}</small>
               </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="panel stack-panel overview-risk-panel">
+          <PanelTitle title="Flood Risk List" meta="AI-generated simulated risk" />
+          <div className="compact-table">
+            {zones.map((zone) => (
+              <button
+                key={zone.id}
+                className={`table-row ${selectedZone.id === zone.id ? "selected" : ""}`}
+                onClick={() => selectZone(zone.id)}
+                type="button"
+              >
+                <span>Zone {zone.id}</span>
+                <strong>{zone.name}</strong>
+                <span className={`risk-badge ${riskClass(zone.risk)}`}>{zone.risk}% {getRiskLevel(zone.risk)}</span>
+              </button>
+            ))}
+          </div>
+          <button className="primary-action" onClick={() => setActiveTab("risk")} type="button">
+            View Flood Risk
+          </button>
+        </div>
+
+        <div className="panel stack-panel">
+          <PanelTitle title="River Level List" meta="IoT sensor measurement" />
+          <div className="river-list">
+            {sensors.map((sensor) => (
+              <button
+                key={sensor.id}
+                className={`sensor-row ${selectedSensor.id === sensor.id ? "selected" : ""}`}
+                onClick={() => {
+                  const zone = zones.find((item) => item.sensorId === sensor.id);
+                  if (zone) selectZone(zone.id);
+                }}
+                type="button"
+              >
+                <span>{sensor.id}</span>
+                <strong>{sensor.place}</strong>
+                <b>{sensor.level.toFixed(1)} m</b>
+                <em>{sensor.change}</em>
+                <small>{sensor.risk}</small>
+              </button>
             ))}
           </div>
         </div>
@@ -533,13 +541,15 @@ function CctvTab({
   selectZone: (zoneId: string, nextTab?: TabId) => void;
   setActiveTab: (tab: TabId) => void;
 }) {
+  const waterScene = getWaterScene(selectedSensor.cctvLevel);
+
   return (
     <section className="tab-panel">
       <HeaderBlock title="Real-Time CCTV" subtitle="CCTV, water-level sensor, and environmental monitoring" />
       <KpiGrid>
         <KpiCard label="Active Cameras" value="14 / 15" detail="93% online" tone="green" />
         <KpiCard label="Current Water Level" value={`${selectedSensor.cctvLevel.toFixed(1)} m`} detail={`${selectedSensor.id} IoT sensor reading`} tone="blue" />
-        <KpiCard label="Rainfall" value="82 mm/hr" detail="Heavy rain - increasing" tone="amber" />
+        <KpiCard label="Weather Station" value="82 mm/hr" detail="Heavy rain - increasing" tone="amber" />
         <KpiCard label="Flow Speed" value="2.4 m/s" detail={`${selectedSensor.id} river flow`} tone="blue" />
       </KpiGrid>
 
@@ -553,7 +563,7 @@ function CctvTab({
         />
         <div className="panel cctv-feed-panel">
           <PanelTitle title={selectedCamera.id} meta={selectedCamera.place} />
-          <div className="camera-scene" aria-label="Simulated municipal CCTV view of Krueng Keureuto">
+          <div className={`camera-scene ${waterScene}`} aria-label={`Simulated municipal CCTV view of Krueng Keureuto during ${waterScene} water level`}>
             <div className="rain-layer" />
             <div className="clouds" />
             <div className="river" />
@@ -562,7 +572,8 @@ function CctvTab({
             <div className="bridge" />
             <div className="gauge"><span /></div>
             <div className="buildings"><i /><i /><i /></div>
-            <div className="camera-osd">LIVE 14:42:08  Lhoksukon - Krueng Keureuto</div>
+            <div className="scene-status">{waterScene.toUpperCase()} WATER LEVEL</div>
+            <div className="camera-osd">LIVE 14:42:08  {selectedCamera.place}</div>
           </div>
           <div className="feed-caption">
             <strong>Observed information</strong>
@@ -582,7 +593,7 @@ function CctvTab({
 
           <PanelTitle title="Environmental Information" meta="Simulated readings" />
           <div className="info-grid">
-            <Info label="Rainfall" value="82 mm/hr" />
+            <Info label="Weather Station" value="82 mm/hr" />
             <Info label="Temperature" value="27 C" />
             <Info label="Humidity" value="91%" />
             <Info label="Wind" value="18 km/h" />
@@ -747,6 +758,7 @@ function RescueTab({
             <span>AI rescue recommendation</span>
             <strong>{selectedIncident.priority} - Immediate response recommended</strong>
             <p>{selectedIncident.recommendation}</p>
+            <div className="rescue-prompt">Rescue team could reach in 15 minutes.</div>
             <ul>
               {selectedIncident.reasons.map((reason) => <li key={reason}>{reason}</li>)}
             </ul>

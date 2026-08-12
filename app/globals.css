@@ -273,9 +273,9 @@ a {
 
 .geo-controls {
   display: grid;
-  grid-template-columns: minmax(120px, 0.75fr) minmax(120px, 0.75fr) minmax(220px, 1.5fr);
+  grid-template-columns: minmax(150px, 0.8fr) minmax(260px, 1.4fr);
   align-items: end;
-  width: min(760px, 54vw);
+  width: min(620px, 48vw);
   gap: 10px;
 }
 
@@ -479,7 +479,7 @@ a {
 
 .overview-grid {
   display: grid;
-  grid-template-columns: minmax(270px, 0.9fr) minmax(280px, 1fr) minmax(420px, 1.7fr);
+  grid-template-columns: minmax(260px, 0.85fr) minmax(360px, 1.25fr) minmax(250px, 0.8fr) minmax(420px, 1.55fr);
   gap: 12px;
   align-items: stretch;
 }
@@ -686,8 +686,13 @@ a {
 .recommendation small {
   margin: 0;
   color: var(--muted);
-  font-size: var(--text-sm);
-  line-height: 1.45;
+  font-size: var(--text-md);
+  line-height: 1.55;
+}
+
+.overview-risk-panel .table-row {
+  grid-template-columns: 64px 1fr auto;
+  min-height: 58px;
 }
 
 .source-grid {
@@ -998,6 +1003,22 @@ a {
   background: linear-gradient(#9fb7c7 0 42%, #819aa9 42% 44%, #8a9b87 44% 61%, #536c78 61% 100%);
 }
 
+.camera-scene.low {
+  background: linear-gradient(#b8d3df 0 43%, #d3dfd0 43% 60%, #7e9177 60% 100%);
+}
+
+.camera-scene.moderate {
+  background: linear-gradient(#a8bfcc 0 40%, #92a999 40% 57%, #597f8f 57% 100%);
+}
+
+.camera-scene.high {
+  background: linear-gradient(#8ea5b4 0 36%, #7b8b79 36% 51%, #496f83 51% 100%);
+}
+
+.camera-scene.critical {
+  background: linear-gradient(#758891 0 30%, #687064 30% 42%, #315d78 42% 100%);
+}
+
 .rain-layer {
   position: absolute;
   inset: 0;
@@ -1023,6 +1044,25 @@ a {
   bottom: 0;
   height: 35%;
   background: linear-gradient(165deg, #3f6f89, #5d8aa4);
+}
+
+.camera-scene.low .river {
+  height: 24%;
+  background: linear-gradient(165deg, #4d86a0, #73a8bd);
+}
+
+.camera-scene.moderate .river {
+  height: 32%;
+}
+
+.camera-scene.high .river {
+  height: 43%;
+  background: linear-gradient(165deg, #3b7898, #4f879f);
+}
+
+.camera-scene.critical .river {
+  height: 56%;
+  background: linear-gradient(165deg, #2f6685, #477d94);
 }
 
 .embankment {
@@ -1071,6 +1111,39 @@ a {
   inset: auto 0 0;
   height: 58%;
   background: rgba(209, 61, 61, 0.52);
+}
+
+.camera-scene.low .gauge span {
+  height: 22%;
+  background: rgba(29, 154, 100, 0.58);
+}
+
+.camera-scene.moderate .gauge span {
+  height: 45%;
+  background: rgba(185, 133, 0, 0.58);
+}
+
+.camera-scene.high .gauge span {
+  height: 66%;
+  background: rgba(230, 120, 37, 0.58);
+}
+
+.camera-scene.critical .gauge span {
+  height: 86%;
+  background: rgba(209, 61, 61, 0.6);
+}
+
+.scene-status {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 4;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  padding: 7px 10px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
 }
 
 .buildings {
@@ -1292,6 +1365,15 @@ a {
   padding-left: 18px;
   color: #000;
   font-size: var(--text-sm);
+}
+
+.rescue-prompt {
+  border-radius: 20px;
+  background: #000;
+  color: #fff;
+  padding: 10px 12px;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
 }
 
 .table-panel {
