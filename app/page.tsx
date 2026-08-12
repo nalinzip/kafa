@@ -1,6 +1,5 @@
 "use client";
 
-import { Shield, Waves } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 type TabId = "overview" | "cctv" | "risk" | "rescue";
@@ -324,8 +323,7 @@ export default function Home() {
       <nav className="floating-menu" aria-label="K.A.F.A. modules">
         <div className="menu-brand">
           <span className="menu-logo" aria-hidden="true">
-            <Shield size={18} strokeWidth={2.5} />
-            <Waves size={16} strokeWidth={2.5} />
+            <img src="/kafa_logo.png" alt="" />
           </span>
           <span>K.A.F.A.</span>
           <small>Aceh Utara Command</small>
@@ -348,8 +346,7 @@ export default function Home() {
       <section className="topbar" aria-label="Global controls">
         <div className="brand-block">
           <div className="brand-mark" aria-hidden="true">
-            <Shield size={25} strokeWidth={2.4} />
-            <Waves size={18} strokeWidth={2.7} />
+            <img src="/kafa_logo.png" alt="" />
           </div>
           <div>
             <p className="eyebrow">Korea-ASEAN Flood Assistance System</p>
