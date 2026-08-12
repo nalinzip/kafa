@@ -169,6 +169,7 @@ const incidents = [
     priority: "P1",
     status: "Reported",
     team: "Rescue Team 2",
+    eta: "15 minutes",
     recommendation: "Deploy Rescue Team 2 via accessible northern approach.",
     reasons: ["High flood severity", "Vulnerable individuals reported", "Access road blocked", "Water level rising", "Incident waiting 18 minutes"],
     x: 57,
@@ -186,6 +187,7 @@ const incidents = [
     priority: "P2",
     status: "Acknowledged",
     team: "Rescue Team 4",
+    eta: "22 minutes",
     recommendation: "Use high-clearance rescue vehicle from Matangkuli north road.",
     reasons: ["Restricted access", "Rising water", "One vulnerable person reported"],
     x: 36,
@@ -203,6 +205,7 @@ const incidents = [
     priority: "P3",
     status: "Reported",
     team: "Rescue Team 5",
+    eta: "9 minutes",
     recommendation: "Assign field verification and keep route open.",
     reasons: ["Road remains passable", "Lower reported water level", "No vulnerable people reported"],
     x: 48,
@@ -489,9 +492,7 @@ function OverviewTab({
           <button className="primary-action" onClick={() => setActiveTab("risk")} type="button">
             View Flood Risk
           </button>
-        </div>
 
-        <div className="panel stack-panel">
           <PanelTitle title="River Level List" meta="IoT sensor measurement" />
           <div className="river-list">
             {sensors.map((sensor) => (
@@ -755,7 +756,7 @@ function RescueTab({
             <span>AI rescue recommendation</span>
             <strong>{selectedIncident.priority} - Immediate response recommended</strong>
             <p>{selectedIncident.recommendation}</p>
-            <div className="rescue-prompt">Rescue team could reach in 15 minutes.</div>
+            <div className="rescue-prompt">Rescue team could reach in {selectedIncident.eta}.</div>
             <ul>
               {selectedIncident.reasons.map((reason) => <li key={reason}>{reason}</li>)}
             </ul>
@@ -903,7 +904,7 @@ function MapPanel({
           <>
             <span className="base-marker">Base</span>
             {routeVisible && <div className="route-line" />}
-            {routeVisible && <span className="route-label">Simulated route - 12 min</span>}
+            {routeVisible && <span className="route-label">Simulated route - {selectedIncident?.eta ?? "15 minutes"}</span>}
           </>
         )}
         <div className="map-legend">
